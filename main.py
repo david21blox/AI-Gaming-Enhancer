@@ -6,8 +6,8 @@ import tensorflow as tf
 class GraphicsEnhancer(tf.keras.Model):
     def __init__(self):
         super(GraphicsEnhancer, self).__init__()
-        self.conv1 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')
-        self.conv2 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')
+        self.conv1 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same')
+        self.conv2 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same')
         self.upsample = tf.keras.layers.UpSampling2D(size=(2, 2))
     
     def call(self, inputs):
@@ -16,13 +16,16 @@ class GraphicsEnhancer(tf.keras.Model):
         x = self.upsample(x)
         return x
 
+# Instancia del modelo
 model = GraphicsEnhancer()
 
-# Cargar y preprocesar imagen de entrada
-image = tf.io.read_file('path_to_image.jpg')
-image = tf.image.decode_image(image)
-image = tf.image.resize(image, [256, 256])
-image = tf.expand_dims(image, 0)
+# Función para cargar y preprocesar imagen
+def preprocess_image(image_path):
+    image = tf.io.read_file(image_path)
+    image = tf.image.decode_image(image)
+    image = tf.image.resize(image, [256, 256])
+    image = tf.expand_dims(image, 0)
+    return image
 
-# Mejorar gráficos en tiempo real
-enhanced_image = model(image)
+# Función para mejorar gráficos
+def enhance_image
