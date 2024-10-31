@@ -23,3 +23,5 @@ Este proyecto busca mejorar la experiencia de juego usando inteligencia artifici
 4. Envía un pull request.
 
 autor: Copilot
+
+hice lo que pude
