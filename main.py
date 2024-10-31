@@ -39,6 +39,9 @@ class GraphicsEnhancer(tf.keras.Model):
 # Instancia del modelo
 model = GraphicsEnhancer()
 
+# Variable para habilitar o deshabilitar la mejora de gráficos
+enhancement_enabled = True
+
 # Función para cargar y preprocesar imagen
 def preprocess_image(image_path):
     image = tf.io.read_file(image_path)
@@ -49,9 +52,13 @@ def preprocess_image(image_path):
 
 # Función para mejorar gráficos
 def enhance_image(image_path):
-    image = preprocess_image(image_path)
-    enhanced_image = model(image)
-    return enhanced_image
+    if enhancement_enabled:
+        image = preprocess_image(image_path)
+        enhanced_image = model(image)
+        return enhanced_image
+    else:
+        print("La mejora de gráficos está desactivada.")
+        return None
 
 # Función para entrenamiento continuo con nuevos datos de juegos
 def continuous_training(new_data, labels):
@@ -81,7 +88,17 @@ app = Flask(__name__)
 def optimize():
     data = request.json
     optimized_data = enhance_image(data['image_path'])
-    return jsonify({"status": "success", "optimized_image": optimized_data})
+    if optimized_data is not None:
+        return jsonify({"status": "success", "optimized_image": optimized_data})
+    else:
+        return jsonify({"status": "disabled", "message": "La mejora de gráficos está desactivada"})
+
+@app.route('/toggle', methods=['POST'])
+def toggle_enhancement():
+    global enhancement_enabled
+    enhancement_enabled = not enhancement_enabled
+    status = "activada" if enhancement_enabled else "desactivada"
+    return jsonify({"status": "success", "enhancement": status})
 
 # Ejecutar la API
 if __name__ == '__main__':
@@ -92,8 +109,9 @@ if __name__ == '__main__':
     enhanced_image = enhance_image(image_path)
     
     # Guardar la imagen mejorada
-    tf.keras.preprocessing.image.save_img('enhanced_image.jpg', enhanced_image[0])
-    print("La imagen ha sido mejorada y guardada como 'enhanced_image.jpg'.")
+    if enhanced_image is not None:
+        tf.keras.preprocessing.image.save_img('enhanced_image.jpg', enhanced_image[0])
+        print("La imagen ha sido mejorada y guardada como 'enhanced_image.jpg'.")
     
     # Iniciar la API
     app.run(debug=True)
