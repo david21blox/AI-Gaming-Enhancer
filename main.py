@@ -1,18 +1,11 @@
 import tensorflow as tf
 from flask import Flask, request, jsonify
 
-# Configuración para el uso de GPU
-gpus = tf.config.experimental.list_physical_devices('GPU')
-if gpus:
-    try:
-        tf.config.experimental.set_memory_growth(gpus[0], True)
-        tf.config.experimental.set_virtual_device_configuration(
-            gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=4096)]
-        )
-        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
-    except RuntimeError as e:
-        print(e)
+# Inicialización de la aplicación Flask
+app = Flask(__name__)
+
+# Variable para habilitar o deshabilitar la mejora de gráficos
+enhancement_enabled = True
 
 # Clase de IA para mejorar gráficos en tiempo real
 class GraphicsEnhancer(tf.keras.Model):
@@ -39,15 +32,25 @@ class GraphicsEnhancer(tf.keras.Model):
 # Instancia del modelo
 model = GraphicsEnhancer()
 
-# Variable para habilitar o deshabilitar la mejora de gráficos
-enhancement_enabled = True
+# Configuración para el uso de GPU
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    try:
+        tf.config.experimental.set_memory_growth(gpus[0], True)
+        tf.config.experimental.set_virtual_device_configuration(
+            gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=4096)]
+        )
+        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+    except RuntimeError as e:
+        print(e)
 
 # Función para cargar y preprocesar imagen
 def preprocess_image(image_path):
     image = tf.io.read_file(image_path)
     image = tf.image.decode_image(image)
     image = tf.image.resize(image, [512, 512])  # Mayor resolución para juegos pesados
-    image = tf.expand_dims(image, 0)
+    image = tf.expand_dims(image, 0)  # Añadir dimensión de batch
     return image
 
 # Función para mejorar gráficos
@@ -81,37 +84,15 @@ def adjust_graphics_quality(action):
         # Disminuir calidad gráfica
         print("Disminuyendo calidad gráfica")
 
-# Configuración de la API con Flask
-app = Flask(__name__)
-
+# Rutas Flask para manejar las peticiones
 @app.route('/optimize', methods=['POST'])
 def optimize():
     data = request.json
     optimized_data = enhance_image(data['image_path'])
     if optimized_data is not None:
-        return jsonify({"status": "success", "optimized_image": optimized_data})
+        return jsonify({"status": "success", "optimized_image": optimized_data.numpy().tolist()})
     else:
-        return jsonify({"status": "disabled", "message": "La mejora de gráficos está desactivada"})
+        return jsonify({"status": "failure", "message": "No se pudo optimizar la imagen."})
 
-@app.route('/toggle', methods=['POST'])
-def toggle_enhancement():
-    global enhancement_enabled
-    enhancement_enabled = not enhancement_enabled
-    status = "activada" if enhancement_enabled else "desactivada"
-    return jsonify({"status": "success", "enhancement": status})
-
-# Ejecutar la API
 if __name__ == '__main__':
-    # Ruta de la imagen de entrada
-    image_path = 'path_to_image.jpg'
-    
-    # Mejora de gráficos en tiempo real
-    enhanced_image = enhance_image(image_path)
-    
-    # Guardar la imagen mejorada
-    if enhanced_image is not None:
-        tf.keras.preprocessing.image.save_img('enhanced_image.jpg', enhanced_image[0])
-        print("La imagen ha sido mejorada y guardada como 'enhanced_image.jpg'.")
-    
-    # Iniciar la API
     app.run(debug=True)
