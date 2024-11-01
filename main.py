@@ -20,7 +20,7 @@ class GraphicsEnhancer(tf.keras.Model):
             tf.keras.layers.Conv2D(128, (3, 3), activation=None, padding='same')
         ])
         self.upsample = tf.keras.layers.UpSampling2D(size=(2, 2))
-    
+
     def call(self, inputs):
         x = self.conv1(inputs)
         x = self.conv2(x)
@@ -48,9 +48,9 @@ if gpus:
 # Función para cargar y preprocesar imagen
 def preprocess_image(image_path):
     image = tf.io.read_file(image_path)
-    image = tf.image.decode_image(image, channels=3)  # Asegurarse de que tenga 3 canales
+    image = tf.image.decode_image(image)  # Asegurar que se decodifique correctamente
     image = tf.image.resize(image, [512, 512])  # Mayor resolución para juegos pesados
-    image = tf.expand_dims(image, axis=0)  # Añadir dimensión de batch
+    image = tf.expand_dims(image, 0)  # Añadir dimensión de batch
     return image
 
 # Función para mejorar gráficos
@@ -70,7 +70,7 @@ def continuous_training(new_data, labels):
 
 # Función para ajustar configuraciones en tiempo real
 def dynamic_optimization(frame_data):
-    threshold = 30  # Ejemplo de umbral de latencia
+    threshold = 30  # Definir un umbral para latencia
     if frame_data['latency'] > threshold:
         adjust_graphics_quality('decrease')
     else:
@@ -82,16 +82,13 @@ def adjust_graphics_quality(action):
     elif action == 'decrease':
         print("Disminuyendo calidad gráfica")
 
-# Ruta Flask para manejar las peticiones de optimización
+# Rutas Flask para manejar las peticiones
 @app.route('/optimize', methods=['POST'])
 def optimize():
     data = request.json
-    image_path = data.get('image_path')
-    optimized_image = enhance_image(image_path)
-    if optimized_image is not None:
-        # Convertir a lista para JSON
-        optimized_image = optimized_image.numpy().squeeze().tolist()  # Eliminar la dimensión de batch
-        return jsonify({"status": "success", "optimized_image": optimized_image})
+    optimized_data = enhance_image(data['image_path'])
+    if optimized_data is not None:
+        return jsonify({"status": "success", "optimized_image": optimized_data.numpy().tolist()})
     else:
         return jsonify({"status": "failure", "message": "No se pudo optimizar la imagen."})
 
