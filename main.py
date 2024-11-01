@@ -48,9 +48,9 @@ if gpus:
 # Función para cargar y preprocesar imagen
 def preprocess_image(image_path):
     image = tf.io.read_file(image_path)
-    image = tf.image.decode_image(image)
+    image = tf.image.decode_image(image, channels=3)  # Asegurarse de que tenga 3 canales
     image = tf.image.resize(image, [512, 512])  # Mayor resolución para juegos pesados
-    image = tf.expand_dims(image, 0)  # Añadir dimensión de batch
+    image = tf.expand_dims(image, axis=0)  # Añadir dimensión de batch
     return image
 
 # Función para mejorar gráficos
@@ -70,7 +70,7 @@ def continuous_training(new_data, labels):
 
 # Función para ajustar configuraciones en tiempo real
 def dynamic_optimization(frame_data):
-    # Lógica para ajustar configuraciones en tiempo real
+    threshold = 30  # Ejemplo de umbral de latencia
     if frame_data['latency'] > threshold:
         adjust_graphics_quality('decrease')
     else:
@@ -78,19 +78,20 @@ def dynamic_optimization(frame_data):
 
 def adjust_graphics_quality(action):
     if action == 'increase':
-        # Aumentar calidad gráfica
         print("Aumentando calidad gráfica")
     elif action == 'decrease':
-        # Disminuir calidad gráfica
         print("Disminuyendo calidad gráfica")
 
-# Rutas Flask para manejar las peticiones
+# Ruta Flask para manejar las peticiones de optimización
 @app.route('/optimize', methods=['POST'])
 def optimize():
     data = request.json
-    optimized_data = enhance_image(data['image_path'])
-    if optimized_data is not None:
-        return jsonify({"status": "success", "optimized_image": optimized_data.numpy().tolist()})
+    image_path = data.get('image_path')
+    optimized_image = enhance_image(image_path)
+    if optimized_image is not None:
+        # Convertir a lista para JSON
+        optimized_image = optimized_image.numpy().squeeze().tolist()  # Eliminar la dimensión de batch
+        return jsonify({"status": "success", "optimized_image": optimized_image})
     else:
         return jsonify({"status": "failure", "message": "No se pudo optimizar la imagen."})
 
