@@ -1,4 +1,5 @@
 # main.py - Archivo principal del proyecto
+
 import tensorflow as tf
 
 # Ejemplo simple de un modelo de IA para mejorar gráficos en tiempo real
