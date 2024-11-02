@@ -1,16 +1,9 @@
 # main.py - Archivo principal del proyecto
 import tensorflow as tf
 from flask import Flask, request, jsonify
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import numpy as np
-import psutil
-import tkinter as tk
 
 # Inicialización de la aplicación Flask
 app = Flask(__name__)
-
 # Ejemplo simple de un modelo de IA para mejorar gráficos en tiempo real
 class GraphicsEnhancer(tf.keras.Model):
     def __init__(self):
@@ -24,10 +17,8 @@ class GraphicsEnhancer(tf.keras.Model):
         x = self.conv2(x)
         x = self.upsample(x)
         return x
-
 # Instancia del modelo
 model = GraphicsEnhancer()
-
 # Función para cargar y preprocesar imagen de entrada
 def preprocess_image(image_path):
     image = tf.io.read_file(image_path)
@@ -35,7 +26,6 @@ def preprocess_image(image_path):
     image = tf.image.resize(image, [256, 256])  # Cambiar a la resolución deseada
     image = tf.expand_dims(image, 0)  # Añadir dimensión de batch
     return image
-
 # Ruta para mejorar gráficos
 @app.route('/enhance', methods=['POST'])
 def enhance_graphics():
@@ -52,13 +42,8 @@ def enhance_graphics():
     enhanced_image = tf.cast(enhanced_image, tf.uint8)  # Convertir a uint8
     # Convertir la imagen a un arreglo y enviarla como respuesta
     return jsonify({"status": "success", "enhanced_image": enhanced_image.numpy().tolist()})
-
 if __name__ == '__main__':
     app.run(debug=True)
-
-# Modelo de Red Neuronal Simple
-class SimpleNN(nn.Module):
-    def __init__(self):
         super(SimpleNN, self).__init__()
         self.fc = nn.Linear(1, 1)
 
@@ -70,14 +55,17 @@ def train_model():
     model = SimpleNN()
     criterion = nn.MSELoss()
     optimizer = optim.SGD(model.parameters(), lr=0.01)
+
     X = torch.tensor([[i] for i in range(10)], dtype=torch.float32)
     y = torch.tensor([np.random.randint(20, 80) for _ in range(10)], dtype=torch.float32).view(-1, 1)
+
     for epoch in range(100):
         optimizer.zero_grad()
         outputs = model(X)
         loss = criterion(outputs, y)
         loss.backward()
         optimizer.step()
+
     return model
 
 # Predicción de carga
@@ -120,11 +108,14 @@ def create_interface(model):
 
     root = tk.Tk()
     root.title("Procesador Virtual IA")
+
     start_button = tk.Button(root, text="Iniciar", command=start)
     start_button.pack()
+
     stop_button = tk.Button(root, text="Detener", command=stop)
     stop_button.pack()
-    root.mainloop()
+
+   root.mainloop()
 
 if __name__ == "__main__":
     model = train_model()
