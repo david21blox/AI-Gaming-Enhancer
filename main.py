@@ -15,19 +15,13 @@ class GraphicsEnhancer(tf.keras.Model):
         x = self.upsample(x)
         return x
 
-def load_and_preprocess_image(image_path):
-    image = tf.io.read_file(image_path)
-    image = tf.image.decode_image(image)
-    image = tf.image.resize(image, [256, 256])
-    image = tf.expand_dims(image, 0)
-    return image
+model = GraphicsEnhancer()
 
-def enhance_graphics(image_path):
-    model = GraphicsEnhancer()
-    image = load_and_preprocess_image(image_path)
-    enhanced_image = model(image)
-    return enhanced_image
+# Cargar y preprocesar imagen de entrada
+image = tf.io.read_file('path_to_image.jpg')
+image = tf.image.decode_image(image)
+image = tf.image.resize(image, [256, 256])
+image = tf.expand_dims(image, 0)
 
-# Uso de la función para mejorar gráficos en tiempo real
-path_to_image = 'path_to_image.jpg'
-enhanced_image = enhance_graphics(path_to_image)
+# Mejorar gráficos en tiempo real
+enhanced_image = model(image)
